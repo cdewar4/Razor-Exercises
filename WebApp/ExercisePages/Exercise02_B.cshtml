@@ -1,8 +1,59 @@
 ﻿@{
     Layout = "~/_Layout.cshtml";
     Page.Title = string.Format("Razor - {0}", "Exercise 02_B");
+
+    string artistName = "";
+    string artistID = "";
+
+    var choice = Request.Form["ArtistList"];
+    var cid = Request.QueryString["cid"];
+
+    if (string.IsNullOrEmpty(cid))
+    {
+        Response.Redirect("SimpleQueryLikePage1.cshtml");
+    }
+
+    var db = Database.Open("CHINOOK");
+
+    string sqlcommand1 = "SELECT ArtistId, Name FROM Artists WHERE Name LIKE @0 ORDER BY Name";
+    var partialstring = "%" + cid + "%";
+    var results = db.Query(sqlcommand1, partialstring);
+    if (results.Count() == 0)
+    {
+        <p style="color:firebrick">There was no record returned from the Data Base</p>
+    }
+    else
+    {
+        <p style="color:darkgreen">There was @results.Count() record/s returned from the Data Base</p>
+    }
 }
 
 @section banner {
     <h1>@Page.Title</h1>
 }
+
+<form id="theform" method="post">
+    <div class="row offset-1">
+        <label class="label" for="ArtistList">Artists: </label>&nbsp;&nbsp;
+        <select id="ArtistList" name="ArtistList">
+            <option value="0">select artist...</option>
+            @foreach (var item in results)
+            {
+                if (choice == item.artistID.ToString())
+                {
+                    <option value="@item.artistID" selected>@item.Name</option>
+                }
+                else
+                {
+                    <option value="@item.artistID">@item.Name</option>
+                }
+            }
+        </select>
+    </div><br />
+    <div class="row offset-1">
+        <button type="submit" id="theButton" name="theButton" value="submit"
+                class="btn btn-primary">
+            View Artist Albums ...
+        </button>
+    </div>
+</form>

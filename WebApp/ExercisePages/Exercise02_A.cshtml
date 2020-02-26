@@ -22,7 +22,7 @@
     }
     else
     {
-        var db = Database.Open("Chinook");
+        var db = Database.Open("CHINOOK");
 
         string sqlcommand1 = "SELECT ArtistId, Name FROM Artists WHERE Name LIKE @0 ORDER BY Name";
         var partialstring = "%" + artistArg + "%";
@@ -36,7 +36,7 @@
         }
         else
         {
-            Response.Redirect("SimpleQueryLikePage2.cshtml?cid=" + artistArg);
+            Response.Redirect("Exercise02_B.cshtml?cid=" + artistArg);
         }
     }
 }
