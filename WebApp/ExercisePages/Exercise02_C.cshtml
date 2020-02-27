@@ -3,33 +3,34 @@
     Page.Title = string.Format("Razor - {0}", "Exercise 02_C");
 
     var cid = Request.QueryString["cid"];
-    <p>Your choice was: @cid</p>
 
     if (string.IsNullOrEmpty(cid))
     {
-        Response.Redirect("Exercise01.cshtml");
+        Response.Redirect("Exercise02_A.cshtml");
     }
 
     var db = Database.Open("Chinook");
-    var artistquery = @"SELECT Name 
-            FROM Artists
-            WHERE ArtistId = @0";
-    var artistname = db.Query(artistquery, cid);
 
     var albumquery = @"SELECT AlbumId, Title, ReleaseYear, ReleaseLabel 
             FROM Albums
             WHERE ArtistId = @0
             ORDER BY Title";
-    var albuminfo = db.Query(albumquery, cid);
 
-    var gridinstance = new WebGrid(artistname, rowsPerPage: 2);
+    var albuminfo = db.Query(albumquery, cid);
+    var artistquery = @"SELECT Name 
+            FROM Artists
+            WHERE ArtistId = @0";
+    var artistname = db.QueryValue(artistquery, cid);
+
+    var gridinstance = new WebGrid(albuminfo, rowsPerPage: 10);
 }
 
 @section banner {
     <h1>@Page.Title</h1>
 }
+
 <div class="offset-1">
-    <h3>Albums for Artist: @artistname</h3>
+    <h3>Albums of @artistname</h3>
     <div class="col-11">
         @gridinstance.GetHtml(
          tableStyle: "table table-striped table-bordered table-hover",

@@ -1,8 +1,131 @@
 ﻿@{
     Layout = "~/_Layout.cshtml";
     Page.Title = string.Format("Razor - {0}", "Exercise 03");
+
+    var albumTitle = "";
+    var albumArtist = "0";
+    var albumYear = "";
+    var albumLabel = "";
+
+    var db = Database.Open("Chinook");
+    var artistquery = @"SELECT ArtistId, Name
+    FROM Artists
+    ORDER BY Name";
+    var artistlist = db.Query(artistquery);
+
+    Validation.Add("AlbumTitle",
+        Validator.Required("Title is required"),
+        Validator.StringLength(160, 1, "The albums title is restricted to 160 characters"));
+
+    Validation.Add("ArtistList",
+        Validator.Required("Artist is required"));
+
+    Validation.Add("AlbumYear",
+        Validator.Range(1950, DateTime.Today.Year, "Year is out of range, 1950 to today"),
+        Validator.Required("Albums release year is required"));
+
+    Validation.Add("AlbumLabel",
+        Validator.StringLength(50, 1, "The label is limited to 50 characters"));
 }
 
 @section banner {
     <h1>@Page.Title</h1>
 }
+
+@if (IsPost)
+{
+    albumTitle = Request.Form["AlbumTitle"];
+    albumArtist = Request.Form["ArtistList"];
+    albumYear = Request.Form["AlbumYear"];
+    albumLabel = Request.Form["AlbumLabel"];
+    var theButton = Request.Form["FormButton"];
+
+    if (theButton.Equals("Clear"))
+    {
+        albumTitle = "";
+        albumArtist = "0";
+        albumYear = "";
+        albumLabel = "";
+    }
+    else
+    {
+        if (Validation.IsValid())
+        {
+            try
+            {
+                var inscommand = @"INSERT INTO Albums
+                    (Title, ArtistId, ReleaseYear, ReleaseLabel)
+                    VALUES(@0, @1, @2, @3)";
+                db.Execute(inscommand, albumTitle,
+                    albumArtist.Equals("0") ? null : albumArtist,
+                    string.IsNullOrEmpty(albumYear) ? null : albumYear,
+                    string.IsNullOrEmpty(albumLabel) ? null : albumLabel);
+                <div class="col-12 text-center">
+                    <p style="color:green">
+                        album has been ADDED
+                    </p>
+                </div>
+            }
+            catch (Exception ex)
+            {
+                <div class="col-12 text-center">
+                    <p style="color:firebrick; font-size:large">
+                        Processing error: @ex.Message
+                    </p>
+                </div>
+            }
+        }
+    }
+}
+<h3>Enter Album</h3>
+@Html.ValidationSummary()
+
+<form id="theForm" action="" method="post">
+    <div class="row row-cols-2">
+        <div class="col text-right">
+            <label id="lblAlbumTitle" for="AlbumTitle">Title: </label>
+        </div>
+        <div class="col text-left">
+            <input type="text" name="AlbumTitle" value="@albumTitle" />
+        </div><br />
+        <div class="col text-right">
+            <label id="lblArtistList" for="ArtistList">Artists</label>
+        </div>
+        <div class="col text-left">
+            <select name="ArtistList">
+                <option value="0">select...</option>
+                @foreach (var acollectionrow in artistlist)
+                {
+                    if (acollectionrow.ArtistID.ToString() == albumArtist)
+                    {
+                        <option value="@acollectionrow[0]" selected>@acollectionrow[1]</option>
+                    }
+                    else
+                    {
+                        <option value="@acollectionrow[0]">@acollectionrow[1]</option>
+                    }
+                }
+            </select>
+        </div><br />
+        <div class="col text-right">
+            <label id="lblAlbumYear" for="AlbumYear">Album Year</label>
+        </div>
+        <div class="col text-left">
+            <input type="text" name="AlbumYear" value="@albumYear" />
+        </div><br />
+        <div class="col text-right">
+            <label id="lblAlbumLabel" for="AlbumLabel">Album Label</label>
+        </div>
+        <div class="col text-left">
+            <input type="text" name="AlbumLabel" value="@albumLabel" />
+        </div><br />
+    </div>
+    <div class="row">
+        <div class="col-12 text-center">
+            <input type="submit" id="theAdd" name="FormButton"
+                   class="btn btn-primary" value="Add" />
+            <input type="submit" id="theClear" name="FormButton" formnovalidate
+                   class="btn" value="Clear" />
+        </div>
+    </div>
+</form>

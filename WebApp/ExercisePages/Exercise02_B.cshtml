@@ -2,35 +2,53 @@
     Layout = "~/_Layout.cshtml";
     Page.Title = string.Format("Razor - {0}", "Exercise 02_B");
 
-    string artistName = "";
-    string artistID = "";
-
     var choice = Request.Form["ArtistList"];
     var cid = Request.QueryString["cid"];
 
     if (string.IsNullOrEmpty(cid))
     {
-        Response.Redirect("SimpleQueryLikePage1.cshtml");
+        Response.Redirect("Exercise02_A.cshtml");
     }
 
     var db = Database.Open("CHINOOK");
-
-    string sqlcommand1 = "SELECT ArtistId, Name FROM Artists WHERE Name LIKE @0 ORDER BY Name";
+    string artistquery = "SELECT ArtistId, Name FROM Artists WHERE Name LIKE @0 ORDER BY Name";
     var partialstring = "%" + cid + "%";
-    var results = db.Query(sqlcommand1, partialstring);
-    if (results.Count() == 0)
+    var results = db.Query(artistquery, partialstring);
+
+    <p style="color:darkgreen">There was @results.Count() record/s returned from the Data Base</p>
+}
+
+@section banner {<h1>@Page.Title</h1>}
+
+@if (IsPost)
+{
+    if (choice.Equals("0"))
     {
-        <p style="color:firebrick">There was no record returned from the Data Base</p>
+        <p style="color:firebrick">Select an artist name to view their albums</p>
     }
     else
     {
-        <p style="color:darkgreen">There was @results.Count() record/s returned from the Data Base</p>
+        var artistchoice = @"SELECT AlbumId
+                    FROM Albums
+                    WHERE ArtistID = @0";
+        var albuminfo = db.Query(artistchoice, choice);
+
+        if (albuminfo.Count() == 0)
+        {
+            <p style="color:firebrick">There are no albums stored for the selected artist.</p>
+        }
+        else
+        {
+            Response.Redirect("Exercise02_C.cshtml?cid=" + choice);
+        }
     }
 }
 
-@section banner {
-    <h1>@Page.Title</h1>
-}
+
+
+
+
+
 
 <form id="theform" method="post">
     <div class="row offset-1">
